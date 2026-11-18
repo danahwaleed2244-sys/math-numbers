@@ -274,7 +274,7 @@ input[type=text],input[type=tel],input[type=password],input[type=number],input[t
 /* ====== إعدادات النسخة (تتغير عند «تنزيل نسخة الطالبات بالإعدادات الجديدة») ====== */
 const CFG = /*CFG*/{"scriptUrl":"https://script.google.com/macros/s/AKfycbyu9dpGNV0JKix1fbMDrqHBtfblp2Bdfj1nb4_9zbhU6T8ea5O23V66_6C7IgFSHHKOWQ/exec","classes":[{"name":"١/٣","size":30},{"name":"٢/٣","size":21}]}/*ENDCFG*/;
 const APP = {
-  version:'2.2', versionDate:'2026-11-06',
+  version:'2.3', versionDate:'2026-11-18',
   trip:'رحلة الأعداد والعمليات', /* اسم ورقة هذه الرحلة داخل جدول قوقل المشترك */
   title:'رحلة الرياضيات: الأعداد والعمليات عليها',
   school:'متوسطة السيل الصغير', admin:'إدارة تعليم الطائف',
@@ -1605,8 +1605,10 @@ async function rsaEncPin(pin){ try{ if(!TM.teacher||!TM.teacher.pub) return '';
   return b64(await crypto.subtle.encrypt({name:'RSA-OAEP'},k,te.encode(pin))) }catch(e){return ''} }
 
 /* ================= التخزين: Google Sheets أو الجهاز ================= */
-const LS={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},
-          set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}, del(k){try{localStorage.removeItem(k)}catch(e){}}};
+/* كل رحلة لها مفاتيح تخزين خاصة بها (الرحلات على نفس النطاق) */
+const LS={_k(k){return k==='mj_url'?k:k+'@'+APP.trip},
+          get(k,d){try{let v=localStorage.getItem(this._k(k)); if(v==null&&(k==='mj_me'||k.indexOf('mj_rec_')===0)) v=localStorage.getItem(k); if(v==null) return d; const x=JSON.parse(v); return x==null?d:x}catch(e){return d}},
+          set(k,v){try{localStorage.setItem(this._k(k),JSON.stringify(v))}catch(e){}}, del(k){try{localStorage.setItem(this._k(k),'null')}catch(e){}}};
 function scriptUrl(){return (LS.get('mj_url','')||CFG.scriptUrl||'').trim()}
 const DB={
   remote(){return /^https:\/\/script\.google(usercontent)?\.com\//.test(scriptUrl())},
